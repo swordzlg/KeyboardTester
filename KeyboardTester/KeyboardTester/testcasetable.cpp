@@ -149,13 +149,19 @@ void CTestCaseTable::_genTestCases()
 {
 	for (uint i = 1; i <= kGroupCount; ++i)
 	{
+		int nNegativeCount = 5;
 		for (uint j = 1; j <= kCaseCount; ++j)
 		{
 			QString strNum;
-			int nNumLen = qrand() % 6 + 1; // 数字长度6~10
-			if (qrand() % 10 > 7)	// 负号
+			int nNumLen = qrand() % 4 + 6; // 数字长度6~11
+			// 负数
+			if (nNegativeCount != 0 &&
+				(qrand() % 10 > 7 || j + nNegativeCount == kCaseCount))
+			{
+				--nNegativeCount;
 				strNum.push_back('-');
-			strNum.push_back((char)(qrand() % 9 + 1 + '0'));	// 第一个数字
+			}
+			strNum.push_back((char)(qrand() % 9 + 1 + '0'));	// 第一个数字不为0
 			--nNumLen;
 			while (nNumLen--)
 			{
@@ -175,6 +181,8 @@ void CTestCaseTable::showNextGroup()
 		return ;
 
 	++m_nCurrentGroupNo;
+	m_nCorretRowCount = m_testGroup[m_nCurrentGroupNo].correctRowCount;
+	m_nWrongRowCount = m_testGroup[m_nCurrentGroupNo].wrongRowCount;
 	_loadData();
 }
 
@@ -184,6 +192,8 @@ void CTestCaseTable::showPrevGroup()
 		return ;
 
 	--m_nCurrentGroupNo;
+	m_nCorretRowCount = m_testGroup[m_nCurrentGroupNo].correctRowCount;
+	m_nWrongRowCount = m_testGroup[m_nCurrentGroupNo].wrongRowCount;
 	_loadData();
 }
 
@@ -198,36 +208,58 @@ void CTestCaseTable::keyReleaseEvent(QKeyEvent *keyEvent)
 		int nCurRow = currentRow();
 
 		QString strInput = currentItem()->text();
+
 		if (strInput.length() >= 2)
 			strInput.insert(strInput.length() - 2, '.');
 		setItem(nCurRow, nCurCol, new CItemTestInput(strInput));
 
-		QString strAnswer = m_testGroup[m_nCurrentGroupNo].sample[nCurRow + 1];
+		const QString strAnswer = m_testGroup[m_nCurrentGroupNo].sample[nCurRow + 1];
+		const QString strLastInput = m_testGroup[m_nCurrentGroupNo].input[nCurRow + 1];
 
-		if (strInput == strAnswer)
+		// 当前行是第一次有输入
+		if (m_nCorretRowCount + m_nWrongRowCount == nCurRow)
 		{
-			++m_nCorretRowCount;
+			if (strInput == strAnswer)
+				++m_nCorretRowCount;
+			else if (!strInput.isEmpty())
+				++m_nWrongRowCount;
 		}
-		else
+		// 当前行之前已经有输入
+		else if (strInput != strLastInput)
 		{
-			++m_nWrongRowCount;
+			// 删空输入
+			if (strInput.isEmpty())
+			{
+				if (strLastInput == strAnswer)
+					--m_nCorretRowCount;
+				else
+					--m_nWrongRowCount;
+			}
+			else
+			{
+				if (strInput == strAnswer)
+				{
+					++m_nCorretRowCount;
+					--m_nWrongRowCount;
+				}
+				else
+				{
+					--m_nCorretRowCount;
+					++m_nWrongRowCount;
+				}
+			}
 		}
+
 		emit sigCorrectAndWrongCount(m_nCorretRowCount, m_nWrongRowCount);
 
 		m_testGroup[m_nCurrentGroupNo].input[nCurRow + 1] = strInput;
 
-		// 已是最后一行且
+		// 已是最后一行
 		if (nCurRow + 1 == kCaseCount)
-		{
-			// 不是最后一题
-			if (m_nCurrentGroupNo < kGroupCount)
-				showNextGroup();
-			else
-				finish();
-		}
+			emit sigTestGroupFinished();
 		else
 		{
-			setCurrentCell(nCurRow + 1, nCurCol);
+			setCurrentCell(strInput.isEmpty() ? nCurRow : nCurRow + 1, nCurCol);
 		}
 	}
 }
@@ -237,6 +269,4 @@ void CTestCaseTable::resizeEvent(QResizeEvent *event)
 	setColumnWidth(0, width() / 3 - 1);
 	setColumnWidth(1, width() / 3 - 1);
 	setColumnWidth(2, width() / 3 - 1);
-
-
 }

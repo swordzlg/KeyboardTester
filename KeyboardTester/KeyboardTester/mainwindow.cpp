@@ -25,7 +25,10 @@ CMainWindow::CMainWindow(QWidget *parent)
     connect(&m_pbFinish, SIGNAL(clicked()), this, SLOT(onFinish()));
     connect(&m_pbNext, SIGNAL(clicked()), this, SLOT(onNext()));
     connect(&m_pbPrev, SIGNAL(clicked()), this, SLOT(onPrev()));
-	connect(&m_testCaseTable, SIGNAL(sigCorrectAndWrongCount(uint,uint)), this, SLOT(onCorrectAndWrongCnt(uint, uint)));
+	connect(&m_testCaseTable, SIGNAL(sigCorrectAndWrongCount(uint,uint)),
+		this, SLOT(onCorrectAndWrongCnt(uint, uint)));
+	connect(&m_testCaseTable, SIGNAL(sigTestGroupFinished()),
+		this, SLOT(_onTestGroupFinished()));
 	connect(&m_countdown, SIGNAL(timeup()), &m_testCaseTable, SLOT(finish()));
 
 	m_testCaseTable.initTable();
@@ -121,7 +124,9 @@ QLabel* CMainWindow::getLabel(const QString& text)
 
 void CMainWindow::updateCurrentGroupTips()
 {
-	QString strTips = QString(CN_CODEC("<b><font size=\"5\"> 当前为：第<font color=\"red\">%1<font color=\"black\">/<font color=\"blue\">26<font color=\"black\">题</b>")).arg(m_nCurrentGroupNo);
+	QString strTips = QString(CN_CODEC("<b><font size=\"5\"> 当前为：第<font color=\"red\">%1<font color=\"black\">/<font color=\"blue\">%2<font color=\"black\">题</b>"))
+		.arg(m_nCurrentGroupNo)
+		.arg(kGroupCount);
 	m_labCurGrpNum.setText(strTips);
 }
 
@@ -170,23 +175,37 @@ void CMainWindow::onNext()
 
 void CMainWindow::onCorrectAndWrongCnt(uint nCorrectCnt, uint nWrongCnt)
 {
-	QString strCorrect, strWrong, strInput;
-	const QString c_strInputTips = CN_CODEC("<font size=\"5\"> 录入行数： ");
-	const QString c_strCorrectTips = CN_CODEC("<font size=\"5\"> 正确行数： ");
-	const QString c_strWrongTips = CN_CODEC("<font size=\"5\"> 错误行数： ");
-	QTextStream textStream;
+	const QString kInputTips = CN_CODEC("<font size=\"5\"> 录入行数： ");
+	const QString kCorrectTips = CN_CODEC("<font size=\"5\"> 正确行数： ");
+	const QString kWrongTips = CN_CODEC("<font size=\"5\"> 错误行数： ");
 
-	textStream.setString(&strInput);
-	textStream << c_strInputTips << nCorrectCnt + nWrongCnt;
-	m_labInputRowCount.setText(strInput);
+	m_labInputRowCount.setText(QString("%1%2")
+		.arg(kInputTips)
+		.arg(nCorrectCnt + nWrongCnt));
 
-	textStream.setString(&strCorrect);
-	textStream << c_strCorrectTips << nCorrectCnt;
-	m_labCorrectRowCount.setText(strCorrect);
+	m_labCorrectRowCount.setText(QString("%1%2")
+		.arg(kCorrectTips)
+		.arg(nCorrectCnt));
 
-	textStream.setString(&strWrong);
-	textStream << c_strWrongTips << nWrongCnt;
-	m_labWrongRowCount.setText(strWrong);
+	m_labWrongRowCount.setText(QString("%1%2")
+		.arg(kWrongTips)
+		.arg(nWrongCnt));
+}
+
+void CMainWindow::_onTestGroupFinished()
+{
+	if (m_nCurrentGroupNo >= kGroupCount)
+	{
+		onFinish();
+	}
+
+	onCorrectAndWrongCnt(0, 0);
+
+	m_testCaseTable.showNextGroup();
+
+	++m_nCurrentGroupNo;
+
+	updateCurrentGroupTips();
 }
 
 void CMainWindow::resizeEvent(QResizeEvent * eve)

@@ -34,6 +34,9 @@ public slots:
 	void onNext();
 	void onCorrectAndWrongCnt(uint nCorrectCnt, uint nWrongCnt);
 
+private slots:
+	void _onTestGroupFinished();
+
 private:
 	CCountdown  m_countdown;              // 剩余时间
 	CTestCaseTable m_testCaseTable;

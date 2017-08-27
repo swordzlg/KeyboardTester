@@ -3,9 +3,9 @@
 
 namespace
 {
-	const uint kGroupCount = 3;
+	const uint kGroupCount = 25;
 	const uint kCaseCount = 25;
-	const uint kTestTime = 300;
+	const uint kTestTime = 600;
 }
 
 #define CN_CODEC(x) QString::fromLocal8Bit(x)

@@ -121,18 +121,20 @@ private:
 	void _loadData();
 	//double _calcScore();
 
+signals:
+	void sigCorrectAndWrongCount(uint, uint);
+	void sigTestFinished(uint nScore);
+	void sigTestGroupFinished();
+
+public slots:
+	void finish();
+
+private:
 	bool m_bInit;
 	uint m_nCurrentGroupNo;		// 当前组号
 	uint m_nCorretRowCount;		// 正确行数
 	uint m_nWrongRowCount;		// 错误行数
 	TestGroup m_testGroup[kGroupCount + 1];		// 测试用例组，下标从1开始
-
-signals:
-	void sigCorrectAndWrongCount(uint, uint);
-	void sigTestFinished(uint nScore);
-
-public slots:
-	void finish();
 };
 
 #endif // TESTCASETABLE_H
