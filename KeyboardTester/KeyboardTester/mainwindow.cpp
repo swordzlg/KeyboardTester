@@ -1,10 +1,10 @@
-#include "widget.h"
+#include "mainwindow.h"
 #include "public.h"
 
-Widget::Widget(QWidget *parent)
+CMainWindow::CMainWindow(QWidget *parent)
     : QWidget(parent)
 {
-	m_nCurGrpNum = 0;
+	m_nCurrentGroupNo = 0;
 
 	// 初始化控件
     m_pbStart.setText(CN_CODEC("开始"));
@@ -16,7 +16,7 @@ Widget::Widget(QWidget *parent)
     m_pbPrev.setText(CN_CODEC("上一题"));
 	customPtn(m_pbPrev);
 
-	updateCurGrpTips();
+	updateCurrentGroupTips();
 	onCorrectAndWrongCnt(0, 0);
 
     setLayout(getLayout());
@@ -25,7 +25,7 @@ Widget::Widget(QWidget *parent)
     connect(&m_pbFinish, SIGNAL(clicked()), this, SLOT(onFinish()));
     connect(&m_pbNext, SIGNAL(clicked()), this, SLOT(onNext()));
     connect(&m_pbPrev, SIGNAL(clicked()), this, SLOT(onPrev()));
-	connect(&m_testCaseTable, SIGNAL(sigCorrectAndWrongCnt(uint,uint)), this, SLOT(onCorrectAndWrongCnt(uint, uint)));
+	connect(&m_testCaseTable, SIGNAL(sigCorrectAndWrongCount(uint,uint)), this, SLOT(onCorrectAndWrongCnt(uint, uint)));
 	connect(&m_countdown, SIGNAL(timeup()), &m_testCaseTable, SLOT(finish()));
 
 	m_testCaseTable.initTable();
@@ -38,12 +38,12 @@ Widget::Widget(QWidget *parent)
 	m_pbStart.setFocus();
 }
 
-Widget::~Widget()
+CMainWindow::~CMainWindow()
 {
 
 }
 
-QLayout* Widget::getLayout()
+QLayout* CMainWindow::getLayout()
 {
     QHBoxLayout *pMainLayout = new QHBoxLayout;
 
@@ -81,9 +81,9 @@ QLayout* Widget::getLayout()
 	pSubLayout1->addWidget(getLabel(CN_CODEC("<font size=\"6\" color=#309E69> 题目个数：<br>  共有26题，每题25个录入项<br><br>评分标准：<br>数字录入答案正确的每题5分，<br>答案错误的不计分。<br>"
 		"竞赛结束前最后一题虽未完成<br>全部录入，但录入结果正确的，<br>应按实际录入的行数计算成绩，<br>每行得0.2分，不足两行的不计<br>分。")));
 	pSubLayout1->addStretch(Qt::Vertical);	
-    pSubLayout1->addWidget(&m_labInputRowCnt);
-    pSubLayout1->addWidget(&m_labCorrectRowCnt);
-    pSubLayout1->addWidget(&m_labWrongRowCnt);
+    pSubLayout1->addWidget(&m_labInputRowCount);
+    pSubLayout1->addWidget(&m_labCorrectRowCount);
+    pSubLayout1->addWidget(&m_labWrongRowCount);
 	pSubLayout1->addStretch(Qt::Vertical);	
 	pSubLayout1->addLayout(pSubLayout1_1);
 
@@ -97,12 +97,12 @@ QLayout* Widget::getLayout()
     return pMainLayout;
 }
 
-void Widget::getNumbers()
+void CMainWindow::getNumbers()
 {
 	
 }
 
-void Widget::customPtn(QPushButton &ptn)
+void CMainWindow::customPtn(QPushButton &ptn)
 {
 	QFont fnt;
 	fnt.setPointSize(12);
@@ -112,63 +112,63 @@ void Widget::customPtn(QPushButton &ptn)
 	ptn.setFixedSize(100, 30);
 }
 
-QLabel* Widget::getLabel(const QString& text)
+QLabel* CMainWindow::getLabel(const QString& text)
 {
 	QLabel *lab = new QLabel(text);
 
 	return lab;
 }
 
-void Widget::updateCurGrpTips()
+void CMainWindow::updateCurrentGroupTips()
 {
-	QString strTips = QString(CN_CODEC("<b><font size=\"5\"> 当前为：第<font color=\"red\">%1<font color=\"black\">/<font color=\"blue\">26<font color=\"black\">题</b>")).arg(m_nCurGrpNum);
+	QString strTips = QString(CN_CODEC("<b><font size=\"5\"> 当前为：第<font color=\"red\">%1<font color=\"black\">/<font color=\"blue\">26<font color=\"black\">题</b>")).arg(m_nCurrentGroupNo);
 	m_labCurGrpNum.setText(strTips);
 }
 
 // 每次start都是一次全新的测试，不存在中途暂停的功能
-void Widget::onStart()
+void CMainWindow::onStart()
 {
-	m_nCurGrpNum = 1;
-	updateCurGrpTips();
+	m_nCurrentGroupNo = 1;
+	updateCurrentGroupTips();
 
-	m_countdown.setTotTime(TEST_TIME);
+	m_countdown.setTotalTime(kTestTime);
 	m_countdown.start();
 
 	m_testCaseTable.setFocus();
 	m_testCaseTable.newTest();
 }
 
-void Widget::onFinish()
+void CMainWindow::onFinish()
 {
 	m_countdown.stop();
 	m_testCaseTable.finish();
 }
 
-void Widget::onPrev()
+void CMainWindow::onPrev()
 {
-	if (m_nCurGrpNum <= 0)
+	if (m_nCurrentGroupNo <= 0)
 		return;
 
-	m_testCaseTable.showPrevGrp();
+	m_testCaseTable.showPrevGroup();
 
-	--m_nCurGrpNum;
+	--m_nCurrentGroupNo;
 
-	updateCurGrpTips();
+	updateCurrentGroupTips();
 }
 
-void Widget::onNext()
+void CMainWindow::onNext()
 {
-	if (m_nCurGrpNum >= GRP_CNT)
+	if (m_nCurrentGroupNo >= kGroupCount)
 		return;
 
-	m_testCaseTable.showNextGrp();
+	m_testCaseTable.showNextGroup();
 
-	++m_nCurGrpNum;
+	++m_nCurrentGroupNo;
 
-	updateCurGrpTips();
+	updateCurrentGroupTips();
 }
 
-void Widget::onCorrectAndWrongCnt(uint nCorrectCnt, uint nWrongCnt)
+void CMainWindow::onCorrectAndWrongCnt(uint nCorrectCnt, uint nWrongCnt)
 {
 	QString strCorrect, strWrong, strInput;
 	const QString c_strInputTips = CN_CODEC("<font size=\"5\"> 录入行数： ");
@@ -178,18 +178,18 @@ void Widget::onCorrectAndWrongCnt(uint nCorrectCnt, uint nWrongCnt)
 
 	textStream.setString(&strInput);
 	textStream << c_strInputTips << nCorrectCnt + nWrongCnt;
-	m_labInputRowCnt.setText(strInput);
+	m_labInputRowCount.setText(strInput);
 
 	textStream.setString(&strCorrect);
 	textStream << c_strCorrectTips << nCorrectCnt;
-	m_labCorrectRowCnt.setText(strCorrect);
+	m_labCorrectRowCount.setText(strCorrect);
 
 	textStream.setString(&strWrong);
 	textStream << c_strWrongTips << nWrongCnt;
-	m_labWrongRowCnt.setText(strWrong);
+	m_labWrongRowCount.setText(strWrong);
 }
 
-void Widget::resizeEvent(QResizeEvent * eve)
+void CMainWindow::resizeEvent(QResizeEvent * eve)
 {
 	
 }

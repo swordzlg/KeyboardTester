@@ -1,10 +1,12 @@
 #ifndef PUBLIC_H
 #define PUBLIC_H
 
-#define GRP_CNT (3)
-#define CASE_CNT (25)
-
-#define TEST_TIME (30)
+namespace
+{
+	const uint kGroupCount = 3;
+	const uint kCaseCount = 25;
+	const uint kTestTime = 300;
+}
 
 #define CN_CODEC(x) QString::fromLocal8Bit(x)
 

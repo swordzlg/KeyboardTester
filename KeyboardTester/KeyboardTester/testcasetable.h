@@ -8,46 +8,50 @@
 using std::vector;
 using std::pair;
 
-typedef struct _TestGrp
+struct TestGroup
 {
-	uint correctRowCnt;
-	uint wrongRowCnt;
-	QString sample[CASE_CNT + 1];	// 从1开始计算
-	QString input[CASE_CNT + 1];	// 从1开始计算
+	uint correctRowCount;
+	uint wrongRowCount;
+	QString sample[kCaseCount + 1];	// 从1开始计算
+	QString input[kCaseCount + 1];	// 从1开始计算
 
-	_TestGrp()
-		: correctRowCnt(0)
-		, wrongRowCnt(0)
+	TestGroup()
+		: correctRowCount(0)
+		, wrongRowCount(0)
 	{
 
 	}
 
 	void clear()
 	{
-		correctRowCnt = wrongRowCnt = 0;
-		for (int i = 1; i <= CASE_CNT; ++i)
+		correctRowCount = wrongRowCount = 0;
+		for (int i = 1; i <= kCaseCount; ++i)
 		{
 			sample[i].clear();
 			input[i].clear();
 		}
 	}
-
-}TESTGRP;
+};
 
 class CItemCaseNum : public QTableWidgetItem
 {
 public:
 	CItemCaseNum(uint i)
 	{
+		_init();
 		setText(QString::number(i));
-		setFeature();
 	}
+
 	CItemCaseNum(const QString &str)
 	{
+		_init();
 		setText(str);
-		setFeature();
 	}
-	void setFeature()
+
+	~CItemCaseNum() { }
+
+private:
+	void _init()
 	{
 		setTextAlignment(Qt::AlignCenter);
 
@@ -57,8 +61,6 @@ public:
 		font.setBold(false);
 		setFont(font);
 	}
-	~CItemCaseNum() { }
-
 };
 
 class CItemTestCase : public QTableWidgetItem
@@ -69,13 +71,13 @@ public:
 		setText(str);
 		setTextAlignment(Qt::AlignRight);
 		setFlags(flags() ^ Qt::ItemIsSelectable ^ Qt::ItemIsEditable);
-//		setFlags(flags() ^ Qt::ItemIsEditable);
 
 		QFont font;
 		font.setPixelSize(20);
 		font.setBold(false);
 		setFont(font);
 	}
+
 	~CItemTestCase() { }
 };
 
@@ -94,6 +96,7 @@ public:
 		font.setBold(false);
 		setFont(font);
 	}
+
 	~CItemTestInput() { }
 };
 
@@ -102,32 +105,30 @@ class CTestCaseTable : public QTableWidget
 	Q_OBJECT
 
 public:
-    CTestCaseTable();
-    virtual ~CTestCaseTable();
+	explicit CTestCaseTable(QWidget* parent = 0);
+	virtual ~CTestCaseTable();
 	
 	void initTable();
 	void newTest();
-    void showNextGrp(); // 显示下一组题目
-    void showPrevGrp(); // 显示上一组题目
+	void showNextGroup(); // 显示下一组题目
+	void showPrevGroup(); // 显示上一组题目
 
-	void keyReleaseEvent(QKeyEvent *keyEvent);
-	void resizeEvent(QResizeEvent *event);
+	virtual void keyReleaseEvent(QKeyEvent *keyEvent);
+	virtual void resizeEvent(QResizeEvent *event);
 
 private:
-    void genTestCases();
-	void loadData();
-	double calcScore();
+	void _genTestCases();
+	void _loadData();
+	//double _calcScore();
 
 	bool m_bInit;
-    //uint m_nGrpNumInProcess;	// 目前正进行测试的组号，从1开始计算
-	//uint m_nGrpNumOnShow;		// 目前正展示的组号，从1开始计算
-	uint m_nGrpNum;				// 当前组号
-	uint m_nCorretRowCnt;		// 正确行数
-	uint m_nWrongRowCnt;		// 错误行数
-    TESTGRP m_testGrp[GRP_CNT + 1];			// 测试用例组，下标从1开始
+	uint m_nCurrentGroupNo;		// 当前组号
+	uint m_nCorretRowCount;		// 正确行数
+	uint m_nWrongRowCount;		// 错误行数
+	TestGroup m_testGroup[kGroupCount + 1];		// 测试用例组，下标从1开始
 
 signals:
-	void sigCorrectAndWrongCnt(uint, uint);
+	void sigCorrectAndWrongCount(uint, uint);
 	void sigTestFinished(uint nScore);
 
 public slots:

@@ -17,7 +17,7 @@ CCountdown::~CCountdown()
 
 }
 
-void CCountdown::setTotTime(uint nSec)
+void CCountdown::setTotalTime(uint nSec)
 {
 	static const auto MAX_TOTTIME = 60 * 60;
 	m_nLeftTime = nSec < MAX_TOTTIME ? nSec : MAX_TOTTIME;
